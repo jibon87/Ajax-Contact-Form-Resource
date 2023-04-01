@@ -1,53 +1,61 @@
 <?php
 
-    // Only process POST reqeusts.
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        // Get the form fields and remove whitespace.
-        $name = strip_tags(trim($_POST["name"]));
-				$name = str_replace(array("\r","\n"),array(" "," "),$name);
-        $email = filter_var(trim($_POST["email"]), FILTER_SANITIZE_EMAIL);
-        $phone = trim($_POST["phone"]);
-        $message = trim($_POST["message"]);
+    $filenameee =  $_FILES['file']['name'];
+    $fileName = $_FILES['file']['tmp_name']; 
+    $name = $_POST['name'];
+    $phone = $_POST['phone'];
+    $email = $_POST['email'];
+    $usermessage = $_POST['message'];
+    
+    $message ="Name = ". $name . "\r\nPhone = " . $phone . "\r\nEmail = " . $email . "\r\nMessage = " . $usermessage; 
+    
+    $subject ="My email subject";
+    $fromname ="jibon";
+    $fromemail = 'dev-jibon@ashikalazad.com';  //if u dont have an email create one on your cpanel
 
-        // Check that data was sent to the mailer.
-        if ( empty($name) OR empty($message) OR empty($phone) OR !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            // Set a 400 (bad request) response code and exit.
-            http_response_code(400);
-            echo "Please complete the form and try again.";
-            exit;
-        }
+    $mailto = '3djibon1@gmail.com';  //the email which u want to recv this email
 
-        // Set the recipient email address.
-        // FIXME: Update this to your desired email address.
-        $recipient = "3djibon1@gmail.com";
 
-        // Set the email subject.
-        $subject = "New contact from $name";
 
-        // Build the email content.
-        $email_content = "First Name: $name\n";
-        $email_content .= "Email: $email\n\n";
-        $email_content .= "phone:\n$phone\n";
-        $email_content .= "Message:\n$message\n";
 
-        // Build the email headers.
-        $email_headers = "From: $name <$email>";
+    $content = file_get_contents($fileName);
+    $content = chunk_split(base64_encode($content));
 
-        // Send the email.
-        if (mail($recipient, $subject, $email_content, $email_headers)) {
-            // Set a 200 (okay) response code.
-            http_response_code(200);
-            echo "Thank You! Your message has been sent.";
-        } else {
-            // Set a 500 (internal server error) response code.
-            http_response_code(500);
-            echo "Oops! Something went wrong and we couldn't send your message.";
-        }
+    // a random hash will be necessary to send mixed content
+    $separator = md5(time());
 
+    // carriage return type (RFC)
+    $eol = "\r\n";
+
+    // main header (multipart mandatory)
+    $headers = "From: ".$fromname." <".$fromemail.">" . $eol;
+    $headers .= "MIME-Version: 1.0" . $eol;
+    $headers .= "Content-Type: multipart/mixed; boundary=\"" . $separator . "\"" . $eol;
+    $headers .= "Content-Transfer-Encoding: 7bit" . $eol;
+    $headers .= "This is a MIME encoded message." . $eol;
+
+    // message
+    $body = "--" . $separator . $eol;
+    $body .= "Content-Type: text/plain; charset=\"iso-8859-1\"" . $eol;
+    $body .= "Content-Transfer-Encoding: 8bit" . $eol;
+    $body .= $message . $eol;
+
+    // attachment
+    $body .= "--" . $separator . $eol;
+    $body .= "Content-Type: application/octet-stream; name=\"" . $filenameee . "\"" . $eol;
+    $body .= "Content-Transfer-Encoding: base64" . $eol;
+    $body .= "Content-Disposition: attachment" . $eol;
+    $body .= $content . $eol;
+    $body .= "--" . $separator . "--";
+
+    //SEND Mail
+    if (mail($mailto, $subject, $body, $headers)) {
+        // Set a 200 (okay) response code.
+        http_response_code(200);
+        echo "Thank You! Your message has been sent.";
+        
     } else {
-        // Not a POST request, set a 403 (forbidden) response code.
-        http_response_code(403);
-        echo "There was a problem with your submission, please try again.";
+        // Set a 500 (internal server error) response code.
+        http_response_code(500);
+        echo "Oops! Something went wrong and we couldn't send your message.";
     }
-
-?>
