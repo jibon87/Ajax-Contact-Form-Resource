@@ -98,6 +98,24 @@ i {
     border: 1px solid #222;
 }
 
+/* --------- 
+            Contact-form success and error
+            --------- */
+.form-message.success,
+.form-message.error {
+    color: #fff;
+    border: 1px solid #008000e0;
+    padding: 10px;
+    display: inline-block;
+    margin: 5px;
+    background: #00800061;
+    border-radius: 5px;
+}
+.form-message.error {
+    border: 1px solid #ff0000de;
+    background: #ff00008a;
+}
+
 @media screen and (min-width: 576px) {
     .wrapper {
         width: 70%;
